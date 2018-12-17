@@ -34,12 +34,14 @@ LIBS = -I$(LIB_PATH_LOCAL) -I$(LIB_PATH_GLOBAL)  $(LIB_PATH_OPENCV)
 KERNELPATH=/lib/modules/2.6.17-10-generic/build
 
 CFLAGS     = -I$(KERNELPATH)/include 
-CFLAGS    += -Wall -Wstrict-prototypes -fomit-frame-pointer
-CFLAGS    += -O2
+CFLAGS    += -Wall -fomit-frame-pointer
+CFLAGS    += -O2  -std=c++11
 CFLAGS    += -DOSIF_OS_LINUX
 
 
-TARGETS= swapInputOutputSpace mappingPlug printMap simProprioCalibMaplearning simVisionCalibMaplearning mappingAdd mappingDotDiff mappingDiff xmlReader simpleXmlMapReader countNeighbourNodes memoryMap activationMap mapViewColoured mapView printComponent sim1dMapLearning simVisionMapLearning
+TARGETS= swapInputOutputSpace mappingPlug printMap simProprioCalibMaplearning simVisionCalibMaplearning mappingAdd mappingDotDiff mappingDiff xmlReader simpleXmlMapReader countNeighbourNodes memoryMap activationMap mapViewColoured mapView printComponent sim1dMapLearning simVisionMapLearning fillMap xmlMapServer xmlMapClient createDummyMap
+
+
 
 all:	$(TARGETS)
 
@@ -214,6 +216,51 @@ swapInputOutputSpace: swapInputOutputSpace.o ./swapInputOutputSpace.cpp
 	 -lxerces-c  \
 	 ../SRC/CXmlMap.o ../SRC/CBaseMap.o \
 	$(LIBS) 
+
+
+fillMap.o:	fillMap.cpp
+	$(CC) $(INCL) $(CFLAGS) -I../SRC  -g -DLINUX -D__LINUX__ -DUNIX   -c $<
+	
+fillMap: fillMap.o ./fillMap.cpp  
+	$(CC) -o  fillMap fillMap.o \
+	 -lxerces-c   \
+	 ../SRC/CXmlMap.o ../SRC/CBaseMap.o \
+	$(LIBS) 
+
+
+
+Socket.o:	Socket.C
+	$(CC) $(INCL) -g -DLINUX -D__LINUX__ -DUNIX -c $<
+
+
+xmlMapServer.o:	xmlMapServer.cpp
+	$(CC) $(INCL) $(CFLAGS) -I../SRC  -g -DLINUX -D__LINUX__ -DUNIX -D_REENTRANT -c $<
+
+xmlMapServer: xmlMapServer.o ./xmlMapServer.cpp  Socket.o
+	$(CC) -o  xmlMapServer xmlMapServer.o \
+	 -lxerces-c   \
+	 ../SRC/CXmlMap.o ../SRC/CBaseMap.o Socket.o \
+	$(LIBS) 
+
+xmlMapClient.o:	xmlMapClient.cpp
+	$(CC) $(INCL) $(CFLAGS) -I../SRC  -g -DLINUX -D__LINUX__ -DUNIX -c $<
+
+xmlMapClient: xmlMapClient.o ./xmlMapClient.cpp  Socket.o
+	$(CC) -o  xmlMapClient xmlMapClient.o \
+		 -lxerces-c   \
+		 ../SRC/CXmlMap.o ../SRC/CBaseMap.o  \
+	 Socket.o \
+	$(LIBS) 
+
+createDummyMap.o:	createDummyMap.cpp
+	$(CC) $(INCL) $(CFLAGS) -I../SRC  -g -DLINUX -D__LINUX__ -DUNIX -c $<
+
+createDummyMap: createDummyMap.o ./createDummyMap.cpp
+	$(CC) -o  createDummyMap createDummyMap.o \
+	 -lxerces-c   \
+	 ../SRC/CXmlMap.o ../SRC/CBaseMap.o  \
+	$(LIBS) 
+
 
 
 #cleaning up
